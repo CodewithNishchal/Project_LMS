@@ -37,6 +37,16 @@ app.use(
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Ensure MongoDB is connected for every serverless request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use('/uploads', express.static(path.join('/tmp')));
 
 app.use('/api/auth', authRoutes);
@@ -54,13 +64,11 @@ app.get('/api/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'test') {
+if (require.main === module || process.env.VERCEL !== '1') {
   connectDB().then(() => {
-    if (require.main === module || process.env.VERCEL !== '1') {
-      app.listen(PORT, () => {
-        console.log(`🚀 LMS Backend Server running on http://localhost:${PORT}`);
-      });
-    }
+    app.listen(PORT, () => {
+      console.log(`🚀 LMS Backend Server running on http://localhost:${PORT}`);
+    });
   });
 }
 
