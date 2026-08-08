@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
-import { Shield, LogOut, UserCheck, LayoutDashboard, PhoneCall, ShieldCheck, Landmark, IndianRupee } from 'lucide-react';
+import { Shield, LogOut, LayoutDashboard, PhoneCall, ShieldCheck, Landmark, IndianRupee } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();

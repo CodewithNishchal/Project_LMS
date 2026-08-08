@@ -13,7 +13,6 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
     initialData?.salarySlipUrl ? initialData.salarySlipUrl.split('/').pop() : null
   );
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(initialData?.salarySlipUrl || null);
-  const [isCloudinary, setIsCloudinary] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState('');
@@ -32,7 +31,6 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
       });
 
       setUploadedUrl(res.data.fileUrl);
-      setIsCloudinary(res.data.isCloudinary);
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'File not stored: Cloudinary API sent an upload error.';

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from '../../components/common/Navbar';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useBorrowerDashboard } from '../../hooks/useDashboardPolling';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   IndianRupee,
   Clock,
@@ -59,7 +59,6 @@ export const BorrowerDashboard: React.FC = () => {
   } | null>(null);
 
   const prevStatusRef = useRef<string | null>(null);
-  const navigate = useNavigate();
   const { data, isLoading, error } = useBorrowerDashboard();
 
   const activeLoan = data?.activeLoan || data?.loan;

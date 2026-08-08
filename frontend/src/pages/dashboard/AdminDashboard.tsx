@@ -8,21 +8,15 @@ import {
   IndianRupee,
   Landmark,
   ShieldCheck,
-  Users,
   Calendar,
-  Download,
   Info,
   ChevronRight,
   Loader2,
   PhoneCall,
-  UserPlus,
-  CheckCircle2,
-  XCircle,
   FileText,
   Eye,
   ExternalLink,
   X,
-  History,
   Activity,
   FileDown,
   TrendingUp,
@@ -67,7 +61,6 @@ export const AdminDashboard: React.FC = () => {
   const closedLoans = metrics?.closedLoans || 0;
   const appliedLoans = metrics?.appliedLoans || 0;
   const rejectedLoans = metrics?.rejectedLoans || 0;
-  const staffCount = metrics?.staffCount || 0;
   const repaidTotal = metrics?.repaidTotal || 0;
   const totalProfitGains = metrics?.totalProfitGains || 0;
   const totalLoans = metrics?.totalLoans || 0;

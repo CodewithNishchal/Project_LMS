@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   ArrowLeft,
   KeyRound,
-  CheckCircle2,
   Phone,
   Eye,
   EyeOff,
