@@ -9,10 +9,14 @@ interface Props {
 }
 
 export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }) => {
+  const initialUrl = typeof initialData?.salarySlipUrl === 'object' && initialData?.salarySlipUrl !== null
+    ? (initialData.salarySlipUrl.url || '')
+    : String(initialData?.salarySlipUrl || '');
+
   const [fileName, setFileName] = useState<string | null>(
-    initialData?.salarySlipUrl ? initialData.salarySlipUrl.split('/').pop() : null
+    initialUrl ? initialUrl.split('/').pop() || 'salary_slip' : null
   );
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(initialData?.salarySlipUrl || null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(initialUrl || null);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState('');
@@ -30,10 +34,12 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      setUploadedUrl(res.data.fileUrl);
+      const raw = res.data.fileUrl;
+      const extractedUrl = typeof raw === 'object' && raw !== null ? (raw.url || raw.secure_url || '') : String(raw || '');
+      setUploadedUrl(extractedUrl);
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || err.message || 'File not stored: Cloudinary API sent an upload error.';
+        err.response?.data?.message || err.message || 'File upload failed. Please try again.';
       setError(errorMessage);
       setFileName(null);
       setUploadedUrl(null);
@@ -71,15 +77,17 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
     }
   };
 
+  const urlString = typeof uploadedUrl === 'string' ? uploadedUrl : (uploadedUrl as any)?.url || '';
+
   const handleContinue = () => {
-    if (!uploadedUrl) {
+    if (!urlString) {
       setError('Please upload a valid document to continue.');
       return;
     }
-    onNext(uploadedUrl);
+    onNext(urlString);
   };
 
-  const isImage = uploadedUrl ? /\.(jpeg|jpg|png|gif|webp)$/i.test(uploadedUrl) || uploadedUrl.includes('image') : false;
+  const isImage = urlString ? /\.(jpeg|jpg|png|gif|webp)$/i.test(urlString) || urlString.includes('image') : false;
 
   return (
     <div className="space-y-6 bg-white p-8 rounded-2xl shadow-sm border border-slate-100 max-w-lg mx-auto animate-fade-in-up">
@@ -106,7 +114,7 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
       />
 
       {/* CONDITION 1: SHOW EXPANDED TALL UPLOAD DROPZONE ONLY IF NO FILE IS UPLOADED OR WHEN UPLOADING */}
-      {(!uploadedUrl || uploading) && (
+      {(!urlString || uploading) && (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -139,7 +147,7 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
       )}
 
       {/* CONDITION 2: ONCE UPLOADED, REMOVE UPLOAD ICON & SHOW AUTOMATIC LIVE DOCUMENT PREVIEW */}
-      {uploadedUrl && !uploading && (
+      {urlString && !uploading && (
         <div className="space-y-4 animate-fade-in-up">
           {/* Header Status Bar with Re-upload Button */}
           <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between shadow-xs">
@@ -149,7 +157,7 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
                 <p className="text-xs font-extrabold text-slate-900 truncate max-w-[200px]">{fileName}</p>
                 <p className="text-[11px] text-emerald-600 flex items-center gap-1 font-semibold">
                   <CheckCircle className="w-3.5 h-3.5" />
-                  <Cloud className="w-3 h-3 text-cyan-600" /> Cloudinary Uploaded & Verified
+                  <Cloud className="w-3 h-3 text-cyan-600" /> Cloud Storage Uploaded & Verified
                 </p>
               </div>
             </div>
@@ -166,13 +174,13 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
           <div className="bg-slate-900/5 p-3 rounded-2xl border border-slate-200 flex flex-col items-center justify-center min-h-[260px] max-h-[340px] overflow-hidden relative shadow-inner">
             {isImage ? (
               <img
-                src={uploadedUrl}
+                src={urlString}
                 alt="Uploaded Salary Slip Live Preview"
                 className="max-h-[300px] w-auto object-contain rounded-xl shadow-md border border-white"
               />
             ) : (
               <iframe
-                src={uploadedUrl}
+                src={urlString}
                 title="Salary Slip PDF Live Preview"
                 className="w-full h-[300px] rounded-xl border border-slate-200 shadow-sm"
               />
@@ -193,7 +201,7 @@ export const Step3SlipUpload: React.FC<Props> = ({ onNext, onBack, initialData }
         <button
           type="button"
           onClick={handleContinue}
-          disabled={!uploadedUrl || uploading}
+          disabled={!urlString || uploading}
           className="w-2/3 py-3 px-4 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 hover:from-blue-800 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
         >
           Proceed to Terms <ArrowRight className="w-4 h-4" />

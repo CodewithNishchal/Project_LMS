@@ -22,11 +22,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Automatic 401 & 403 Response Interceptor: Redirects to /login if unauthorized or forbidden
+// Automatic 401 Response Interceptor: Redirects to /login if token is invalid or expired
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (error.response && error.response.status === 401) {
       if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
         localStorage.removeItem('lms_token');
         localStorage.removeItem('lms_user');

@@ -75,7 +75,7 @@ export const applyForLoan = async (req: AuthRequest, res: Response): Promise<voi
     const existingLead = await Loan.findOne({
       $or: [
         ...(req.user?.id && Types.ObjectId.isValid(req.user.id) ? [{ borrowerId: new Types.ObjectId(req.user.id) }] : []),
-        { email: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        { borrowerId: req.user?.id },
       ],
       status: { $in: [LoanStatus.LEAD, LoanStatus.LEAD_ENGAGED] },
     });
@@ -165,38 +165,40 @@ export const getMyLoan = async (req: AuthRequest, res: Response): Promise<void> 
     if (userId && Types.ObjectId.isValid(userId)) {
       queryConditions.push({ borrowerId: new Types.ObjectId(userId) });
       queryConditions.push({ borrowerId: userId });
+    } else if (userId) {
+      queryConditions.push({ borrowerId: userId });
     }
+
+    // Match unassigned legacy loans by email only if borrowerId is null
     if (userEmail) {
-      queryConditions.push({ email: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+      queryConditions.push({ borrowerId: null, email: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
     }
 
     const loans = await Loan.find({
       $or: queryConditions.length > 0 ? queryConditions : [{ email: userEmail }],
-    }).sort({ createdAt: -1 });
+    }).sort({ updatedAt: -1 });
 
-    const latestLoan = loans[0] || null;
+    // Active loan priority selection: DISBURSED/SANCTIONED/APPLIED > REJECTED/CLOSED > LEAD
+    const latestLoan =
+      loans.find(l => [LoanStatus.DISBURSED, LoanStatus.SANCTIONED, LoanStatus.APPLIED].includes(l.status as any)) ||
+      loans.find(l => [LoanStatus.CLOSED, LoanStatus.REJECTED].includes(l.status as any)) ||
+      loans[0] ||
+      null;
 
     // Safe Auto-Repair for legacy test loans: Ensures zero 500 errors on duplicate key checks
     if (latestLoan && (latestLoan.status === LoanStatus.DISBURSED || latestLoan.status === LoanStatus.CLOSED)) {
-      if (!latestLoan.disbursedUtr || String(latestLoan.disbursedUtr).includes('[object Object]')) {
-        try {
-          const repairedUtr = `UTR${latestLoan._id.toString().substring(12).toUpperCase()}`;
-          latestLoan.disbursedUtr = repairedUtr;
-          await Loan.findByIdAndUpdate(latestLoan._id, { disbursedUtr: repairedUtr });
-        } catch (repairErr) {
-          // Ignore duplicate UTR error safely if already in DB
-        }
+      if (latestLoan.disbursedUtr && typeof latestLoan.disbursedUtr === 'object') {
+        const rawObj: any = latestLoan.disbursedUtr;
+        const extracted = rawObj.utrNumber || rawObj.utr || rawObj.value || '';
+        latestLoan.disbursedUtr = (extracted && String(extracted) !== '[object Object]') ? String(extracted).trim() : '';
+        await latestLoan.save();
       }
     }
 
-    let payments: any[] = [];
-    if (latestLoan) {
-      payments = await Payment.find({ loanId: latestLoan._id }).sort({ paymentDate: -1 });
-    }
+    const payments = latestLoan ? await Payment.find({ loanId: latestLoan._id }).sort({ paymentDate: -1 }) : [];
 
     res.status(200).json({
       activeLoan: latestLoan,
-      loan: latestLoan,
       loans,
       payments,
     });
@@ -207,19 +209,15 @@ export const getMyLoan = async (req: AuthRequest, res: Response): Promise<void> 
 
 export const uploadSalarySlip = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const file = req.file;
-    if (!file) {
-      res.status(400).json({ message: 'No document file uploaded' });
+    if (!req.file) {
+      res.status(400).json({ message: 'No file uploaded' });
       return;
     }
 
-    const result = await uploadPdfToCloudinary(file.buffer, file.originalname);
-    res.status(200).json({
-      message: 'Salary slip uploaded successfully',
-      fileUrl: result.url,
-      isCloudinary: result.isCloudinary,
-    });
+    const uploadResult = await uploadPdfToCloudinary(req.file.buffer, req.file.originalname);
+    const fileUrl = typeof uploadResult === 'object' && uploadResult !== null ? uploadResult.url : uploadResult;
+    res.status(200).json({ fileUrl });
   } catch (error: any) {
-    res.status(500).json({ message: 'Document upload failed', error: error.message });
+    res.status(500).json({ message: 'Salary slip upload failed', error: error.message });
   }
 };

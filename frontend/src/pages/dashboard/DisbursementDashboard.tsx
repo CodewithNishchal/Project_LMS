@@ -239,6 +239,7 @@ export const DisbursementDashboard: React.FC = () => {
           dob={selectedLoan.dob}
           monthlySalary={selectedLoan.monthlySalary}
           breStatus={selectedLoan.breStatus}
+          organizationName={selectedLoan.organizationName}
           mode="DISBURSEMENT"
           onClose={() => setModalOpen(false)}
           onConfirm={handleDisburse}

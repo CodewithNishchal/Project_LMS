@@ -40,8 +40,24 @@ export const releaseDisbursement = async (req: AuthRequest, res: Response): Prom
       trimmedUtr = '';
     }
 
+    if (trimmedUtr.startsWith('#')) {
+      trimmedUtr = trimmedUtr.substring(1).trim();
+    }
+    if (trimmedUtr.toUpperCase().startsWith('UTR#')) {
+      trimmedUtr = 'UTR' + trimmedUtr.substring(4).trim();
+    }
+
     if (!trimmedUtr) {
       res.status(400).json({ message: 'Bank Transfer UTR Number is mandatory to execute disbursement.' });
+      return;
+    }
+
+    // STRICT UTR FORMAT REGEX: Optional bank/UTR prefix followed strictly by exactly 12 numeric digits
+    const utrFormatRegex = /^(UTR|[A-Z]{3,4})?[0-9]{12}$/i;
+    if (!utrFormatRegex.test(trimmedUtr)) {
+      res.status(400).json({
+        message: 'Invalid UTR format. Bank UTR must consist of strictly 12 numeric digits (e.g. UTR984102948120 or 984102948120).',
+      });
       return;
     }
 

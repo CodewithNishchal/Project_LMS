@@ -65,17 +65,25 @@ export const decideSanction = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
-// AI Underwriting Risk Analysis Controller Endpoint
+// AI Underwriting Risk Analysis Controller Endpoint with Persistent MongoDB Caching
 export const analyzeLoanCreditRisk = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { loanId } = req.body;
 
-    let loanData: any = req.body;
+    let loanRecord: any = null;
     if (loanId) {
-      const found = await Loan.findById(loanId);
-      if (found) loanData = found;
+      loanRecord = await Loan.findById(loanId);
     }
 
+    // 1. INSTANT CACHE HIT: If raw Gemini analysis is already saved in database for this application ID, return immediately!
+    if (loanRecord && loanRecord.aiAnalysis && loanRecord.aiAnalysis.hasAiInference) {
+      res.status(200).json(loanRecord.aiAnalysis);
+      return;
+    }
+
+    const loanData = loanRecord || req.body;
+
+    // 2. CACHE MISS: Execute Gemini Multimodal Vision Analysis
     const analysis = await analyzeCreditRisk({
       fullName: loanData.fullName || 'Borrower Applicant',
       monthlySalary: loanData.monthlySalary,
@@ -83,17 +91,29 @@ export const analyzeLoanCreditRisk = async (req: AuthRequest, res: Response): Pr
       tenureDays: loanData.tenureDays,
       employmentMode: loanData.employmentMode,
       breStatus: loanData.breStatus,
+      organizationName: loanData.organizationName,
+      salarySlipUrl: loanData.salarySlipUrl,
     });
+
+    // 3. PERSIST: Save raw Gemini output directly onto Loan document in MongoDB for future instant loading
+    if (loanRecord && analysis.hasAiInference) {
+      loanRecord.aiAnalysis = {
+        ...analysis,
+        analyzedAt: new Date(),
+      };
+      await loanRecord.save();
+    }
 
     res.status(200).json(analysis);
   } catch (error: any) {
     // Silent Fallback response
     res.status(200).json({
+      hasAiInference: false,
       riskLevel: 'LOW_RISK',
       riskScore: 82,
       aiRecommendation: 'RECOMMEND_SANCTION',
       summary: 'Fallback Rule Engine: Standard credit assessment verified successfully.',
-      keyInsights: ['Verified monthly income', 'Low DTI ratio'],
+      keyInsights: [],
       isAiGenerated: false,
     });
   }

@@ -28,6 +28,20 @@ export const RecordPaymentModal: React.FC<ModalProps> = ({
     e.preventDefault();
     setError('');
 
+    let cleanUtr = utrNumber.trim();
+    if (cleanUtr.startsWith('#')) cleanUtr = cleanUtr.substring(1).trim();
+    if (cleanUtr.toUpperCase().startsWith('UTR#')) cleanUtr = 'UTR' + cleanUtr.substring(4).trim();
+
+    if (!cleanUtr) {
+      setError('UTR Number is required to record payment.');
+      return;
+    }
+    const utrFormatRegex = /^(UTR|[A-Z]{3,4})?[0-9]{12}$/i;
+    if (!utrFormatRegex.test(cleanUtr)) {
+      setError('Invalid UTR format. Bank UTR must consist of strictly 12 numeric digits (e.g. UTR984102948120 or 984102948120).');
+      return;
+    }
+
     // Frontend Pre-validations
     if (numAmount <= 0) {
       setError('Payment amount must be greater than zero');

@@ -17,6 +17,7 @@ import {
   PartyPopper,
   Zap,
   Landmark,
+  History,
 } from 'lucide-react';
 
 const getUtrString = (activeLoan: any): string => {
@@ -62,10 +63,13 @@ export const BorrowerDashboard: React.FC = () => {
   const { data, isLoading, error } = useBorrowerDashboard();
 
   const activeLoan = data?.activeLoan || data?.loan;
+  const allLoans = data?.loans || (activeLoan ? [activeLoan] : []);
   const payments = data?.payments || [];
   const cleanUtr = getUtrString(activeLoan);
 
-  // Detect Live Status Transitions via 10s Polling and Show Toast Notification
+  const isUnappliedLead = activeLoan && (activeLoan.status === 'LEAD' || activeLoan.status === 'LEAD_ENGAGED');
+
+  // Detect Live Status Transitions via 5s Polling and Show Toast Notification
   useEffect(() => {
     if (activeLoan?.status) {
       if (prevStatusRef.current && prevStatusRef.current !== activeLoan.status) {
@@ -107,7 +111,14 @@ export const BorrowerDashboard: React.FC = () => {
   }, [activeLoan?.status, cleanUtr]);
 
   const handleApplyClick = (e: React.MouseEvent) => {
-    if (activeLoan && activeLoan.status !== 'CLOSED' && activeLoan.status !== 'REJECTED') {
+    // Only block if borrower has an ACTIVE submitted loan (APPLIED, SANCTIONED, DISBURSED)
+    if (
+      activeLoan &&
+      activeLoan.status !== 'CLOSED' &&
+      activeLoan.status !== 'REJECTED' &&
+      activeLoan.status !== 'LEAD' &&
+      activeLoan.status !== 'LEAD_ENGAGED'
+    ) {
       e.preventDefault();
       setActiveLoanAlert(true);
     }
@@ -177,7 +188,7 @@ export const BorrowerDashboard: React.FC = () => {
             onClick={handleApplyClick}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
           >
-            <PlusCircle className="w-4 h-4" /> Apply for Next Loan
+            <PlusCircle className="w-4 h-4" /> {isUnappliedLead ? 'Complete Application' : 'Apply for Next Loan'}
           </Link>
         </div>
 
@@ -243,6 +254,31 @@ export const BorrowerDashboard: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* WELCOME / UNAPPLIED LEAD ONBOARDING BANNER */}
+            {isUnappliedLead && (
+              <div className="bg-blue-50 border border-blue-200 p-6 rounded-2xl space-y-3 animate-fade-in-up shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-100 text-blue-800 rounded-xl">
+                      <PlusCircle className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-extrabold text-blue-950">Welcome to CreditSea!</h3>
+                      <p className="text-xs text-blue-700 font-medium">
+                        Your registration is complete. Click below to enter your personal details, upload salary slip, and apply for your loan.
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/apply"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-1.5 shrink-0"
+                  >
+                    Start Loan Application <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {/* EXPLICIT REJECTION BANNER & REMARKS DISPLAY */}
             {activeLoan.status === 'REJECTED' && (
               <div className="bg-rose-50 border border-rose-200 p-6 rounded-2xl space-y-3 animate-fade-in-up shadow-sm">
@@ -397,6 +433,43 @@ export const BorrowerDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Application & Loan History Section (When borrower has multiple loans) */}
+            {allLoans.length > 1 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden space-y-0">
+                <div className="p-6 border-b flex justify-between items-center">
+                  <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                    <History className="w-5 h-5 text-indigo-600" /> Loan Application History ({allLoans.length})
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50 text-slate-600">
+                        <th className="p-4 font-semibold">Loan ID</th>
+                        <th className="p-4 font-semibold">Principal</th>
+                        <th className="p-4 font-semibold">Total Repayment</th>
+                        <th className="p-4 font-semibold">Submitted Date</th>
+                        <th className="p-4 font-semibold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y text-slate-700">
+                      {allLoans.map((l: any) => (
+                        <tr key={l._id} className={l._id === activeLoan._id ? 'bg-blue-50/40 font-semibold' : 'hover:bg-slate-50'}>
+                          <td className="p-4 font-mono text-xs font-bold text-slate-800">{l._id}</td>
+                          <td className="p-4">₹{(l.principalAmount || 0).toLocaleString('en-IN')}</td>
+                          <td className="p-4 font-medium">₹{(l.totalRepayment || 0).toLocaleString('en-IN')}</td>
+                          <td className="p-4 text-xs text-slate-500">{new Date(l.createdAt).toLocaleDateString()}</td>
+                          <td className="p-4">
+                            <StatusBadge status={l.status} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>

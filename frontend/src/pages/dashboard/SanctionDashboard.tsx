@@ -220,6 +220,7 @@ export const SanctionDashboard: React.FC = () => {
           dob={selectedLoan.dob}
           monthlySalary={selectedLoan.monthlySalary}
           breStatus={selectedLoan.breStatus}
+          organizationName={selectedLoan.organizationName}
           mode="SANCTION"
           onClose={() => setModalOpen(false)}
           onConfirm={handleDecision}

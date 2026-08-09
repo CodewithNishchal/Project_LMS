@@ -30,6 +30,24 @@ export interface IAuditLog {
   notes?: string;
 }
 
+export interface IAiAnalysis {
+  hasAiInference: boolean;
+  riskLevel: 'LOW_RISK' | 'MODERATE_RISK' | 'HIGH_RISK';
+  riskScore: number;
+  aiRecommendation: 'RECOMMEND_SANCTION' | 'NEEDS_MANUAL_REVIEW' | 'RECOMMEND_REJECTION';
+  summary: string;
+  keyInsights: string[];
+  slipAnalysis?: {
+    documentType: string;
+    verifiedIncome?: string;
+    employerMatch?: string;
+    documentAuthenticity?: string;
+  };
+  modelUsed?: string;
+  isAiGenerated: boolean;
+  analyzedAt?: Date;
+}
+
 export interface ILoan extends Document {
   _id: Types.ObjectId;
   borrowerId?: Types.ObjectId | null;
@@ -56,6 +74,7 @@ export interface ILoan extends Document {
   disbursedAt?: Date;
   disbursedUtr?: string;
   auditTrail: IAuditLog[];
+  aiAnalysis?: IAiAnalysis;
   closedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -110,6 +129,7 @@ const LoanSchema = new Schema<ILoan>(
     disbursedAt: { type: Date },
     disbursedUtr: { type: String, trim: true },
     auditTrail: [AuditLogSchema],
+    aiAnalysis: { type: Schema.Types.Mixed },
     closedAt: { type: Date },
   },
   { timestamps: true }
