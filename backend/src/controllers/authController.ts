@@ -38,6 +38,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (phone && phone.trim()) {
+      const existingPhone = await User.findOne({ phone: phone.trim() });
+      if (existingPhone) {
+        res.status(400).json({ message: 'An account with this mobile number already exists' });
+        return;
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
