@@ -8,7 +8,9 @@ export const getAdminMetrics = async (req: AuthRequest, res: Response): Promise<
     const totalLoans = await Loan.countDocuments();
     const activeDisbursed = await Loan.countDocuments({ status: LoanStatus.DISBURSED });
     const closedLoans = await Loan.countDocuments({ status: LoanStatus.CLOSED });
-    const appliedLoans = await Loan.countDocuments({ status: { $in: [LoanStatus.APPLIED, LoanStatus.LEAD] } });
+    const appliedLoans = await Loan.countDocuments({
+      status: { $in: [LoanStatus.APPLIED, LoanStatus.LEAD, LoanStatus.LEAD_ENGAGED, LoanStatus.SANCTIONED] },
+    });
     const rejectedLoans = await Loan.countDocuments({ status: LoanStatus.REJECTED });
     const staffCount = await User.countDocuments();
 

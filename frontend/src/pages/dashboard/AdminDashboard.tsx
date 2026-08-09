@@ -452,10 +452,13 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="relative flex items-center justify-center my-auto">
                   {(() => {
-                    const pctActive = totalLoans > 0 ? (activeDisbursed / totalLoans) * 100 : 0;
-                    const pctClosed = totalLoans > 0 ? (closedLoans / totalLoans) * 100 : 0;
-                    const pctApplied = totalLoans > 0 ? (appliedLoans / totalLoans) * 100 : 0;
-                    const pctRejected = totalLoans > 0 ? (rejectedLoans / totalLoans) * 100 : 0;
+                    const categorizedTotal = activeDisbursed + closedLoans + appliedLoans + rejectedLoans;
+                    const chartBase = categorizedTotal > 0 ? categorizedTotal : totalLoans;
+
+                    const pctActive = chartBase > 0 ? (activeDisbursed / chartBase) * 100 : 0;
+                    const pctClosed = chartBase > 0 ? (closedLoans / chartBase) * 100 : 0;
+                    const pctApplied = chartBase > 0 ? (appliedLoans / chartBase) * 100 : 0;
+                    const pctRejected = chartBase > 0 ? (rejectedLoans / chartBase) * 100 : 0;
 
                     const offsetActive = 0;
                     const offsetClosed = -pctActive;
