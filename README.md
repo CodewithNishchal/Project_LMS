@@ -25,7 +25,7 @@ The database contains pre-seeded accounts for every role. Use these credentials 
 | **Sanction Officer** | `sanction@creditsea.com` | `password123` | Credit Underwriting, BRE Evaluation & Gemini 2.5 Flash Audit Panel |
 | **Disbursement Officer** | `disbursement@creditsea.com` | `password123` | Fund Release, 12-Digit Bank UTR Entry & Gemini Audit View |
 | **Collection Officer** | `collection@creditsea.com` | `password123` | Repayment Receipts, UTR Validation & Auto-Closure Processing |
-| **Borrower** | `borrower@demo.com` | `password123` | Application Portal, KFS Calculators, Live Toast Alerts & Loan History |
+| **Borrower** | `borrower@test.com` | `password123` | Application Portal, KFS Calculators, Live Toast Alerts & Loan History |
 
 ---
 
