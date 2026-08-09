@@ -25,11 +25,29 @@ const seed = async () => {
     { name: 'System Admin', email: 'admin@creditsea.com', password: passwordHash, role: UserRole.ADMIN, phone: '9900011122' },
   ]);
 
+  const demoBorrower = users[0];
+
   console.log('✅ Staff Accounts Created (Password: password123):');
   users.forEach((u) => console.log(`   - ${u.role}: ${u.email}`));
 
-  // Create initial Sales Leads
+  // Create initial Sales Leads & Seeded Demo Borrower Lead
   await Loan.create([
+    {
+      borrowerId: demoBorrower._id,
+      fullName: demoBorrower.name,
+      email: demoBorrower.email,
+      phone: demoBorrower.phone,
+      status: LoanStatus.LEAD,
+      auditTrail: [
+        {
+          action: 'LEAD_CREATED',
+          performedBy: demoBorrower.name,
+          performedByRole: 'BORROWER',
+          timestamp: new Date(),
+          notes: 'Pre-seeded demo borrower account initialized in LEAD status.',
+        },
+      ],
+    },
     {
       fullName: 'Rahul Sharma',
       email: 'rahul@example.com',
@@ -46,7 +64,7 @@ const seed = async () => {
     },
   ]);
 
-  console.log('✅ Initial Sales Leads Seeded!');
+  console.log('✅ Initial Sales Leads & Demo Borrower Seeded!');
   process.exit(0);
 };
 
