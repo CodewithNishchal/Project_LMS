@@ -91,7 +91,7 @@ export const analyzeCreditRisk = async (loanData: {
 
     const prompt = `Act as an expert financial underwriting AI inspecting the attached salary slip image & document details:
 Applicant Name: ${fullName}
-Organization / Employer: ${org}
+Organization / Employer: ${org} ${fullName.trim().toLowerCase() === org.trim().toLowerCase() ? '(Note: Applicant entered their personal name into the Company Name form field)' : ''}
 Claimed Monthly Salary: ₹${salary}
 Requested Loan Amount: ₹${principal}
 Tenure: ${tenure} Days

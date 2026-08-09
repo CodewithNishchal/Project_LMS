@@ -244,7 +244,9 @@ export const Step2BreForm: React.FC<Props> = ({ onNext, onBack, initialData }) =
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Company Name</label>
+        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+          Company / Employer Name <span className="text-[11px] font-normal text-slate-500 font-sans">(e.g. Zylker, TCS, Infosys)</span>
+        </label>
         <div className="relative">
           <Building className="w-5 h-5 text-slate-400 absolute left-3 top-3" />
           <input
@@ -252,7 +254,7 @@ export const Step2BreForm: React.FC<Props> = ({ onNext, onBack, initialData }) =
             required
             value={orgName}
             onChange={(e) => setOrgName(e.target.value)}
-            placeholder="e.g. CreditSea Corp"
+            placeholder="e.g. Zylker / Employer Company Name"
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50/60 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 transition-all shadow-sm"
           />
         </div>
