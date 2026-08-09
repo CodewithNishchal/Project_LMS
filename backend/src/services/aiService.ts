@@ -89,6 +89,8 @@ export const analyzeCreditRisk = async (loanData: {
       }
     }
 
+    const currentDateStr = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
     const prompt = `Act as an expert financial underwriting AI inspecting the attached salary slip image & document details:
 Applicant Name: ${fullName}
 Organization / Employer: ${org} ${fullName.trim().toLowerCase() === org.trim().toLowerCase() ? '(Note: Applicant entered their personal name into the Company Name form field)' : ''}
@@ -97,25 +99,28 @@ Requested Loan Amount: ₹${principal}
 Tenure: ${tenure} Days
 Employment Type: ${mode}
 Automated BRE Status: ${bre}
+Current Underwriting Date: ${currentDateStr}
 
 INSTRUCTIONS FOR DOCUMENT AUDIT:
 1. Examine the attached salary slip image carefully.
 2. Read the actual figures for Total Earnings / Net Salary / Gross Salary directly from the document table.
-3. Compare the extracted document figures against the claimed monthly salary (₹${salary.toLocaleString('en-IN')}).
-4. Verify if the employer name on the document matches '${org}'.
+3. Extract the Document Date / Pay Period Month & Year from the salary slip (e.g. March 2024, July 2026).
+4. STRICT RECENCY CHECK: Underwriting policy requires recent salary slips (within the last 3 months of ${currentDateStr}). If the document is older than 3 months (e.g. from 2024 or 2025 or an old pay period), explicitly flag it as an OUTDATED DOCUMENT RED FLAG, reduce the risk score, and set recommendation to NEEDS_MANUAL_REVIEW or RECOMMEND_REJECTION.
+5. Compare the extracted document figures against the claimed monthly salary (₹${salary.toLocaleString('en-IN')}).
+6. Verify if the employer name on the document matches '${org}'.
 
 Return ONLY a valid JSON object matching this schema (do not wrap in markdown or backticks):
 {
   "riskLevel": "LOW_RISK" | "MODERATE_RISK" | "HIGH_RISK",
   "riskScore": number between 0 and 100,
   "aiRecommendation": "RECOMMEND_SANCTION" | "NEEDS_MANUAL_REVIEW" | "RECOMMEND_REJECTION",
-  "summary": "2-sentence professional underwriting summary stating the exact numbers extracted from the document image",
-  "keyInsights": ["bullet point 1 with exact figures from slip image", "bullet point 2", "bullet point 3"],
+  "summary": "2-sentence professional underwriting summary stating extracted figures, document date, and recency status",
+  "keyInsights": ["bullet point 1 with exact figures & pay period date from slip", "bullet point 2 (recency & employer match status)", "bullet point 3"],
   "slipAnalysis": {
     "documentType": "Salary Slip / Bank Statement",
-    "verifiedIncome": "exact figure extracted from document image (e.g. ₹19,250)",
+    "verifiedIncome": "exact figure extracted from document image (e.g. ₹77,000)",
     "employerMatch": "Matched / Mismatched / Not Found",
-    "documentAuthenticity": "Verified / Needs Verification"
+    "documentAuthenticity": "Recent (e.g. July 2026) / Outdated (e.g. March 2024 - Stale Document)"
   }
 }`;
 

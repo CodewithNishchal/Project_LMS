@@ -434,6 +434,24 @@ export const DecisionModal: React.FC<PropsWithChildren<DecisionModalProps>> = ({
                             <Check className="w-3.5 h-3.5 text-blue-600" /> {aiAnalysis.slipAnalysis.employerMatch}
                           </span>
                         </div>
+                        {aiAnalysis.slipAnalysis.documentAuthenticity && (
+                          <div className="flex justify-between py-0.5 border-t border-slate-100 pt-1.5">
+                            <span className="text-slate-500">Doc Recency</span>
+                            <span
+                              className={`font-bold text-xs ${
+                                aiAnalysis.slipAnalysis.documentAuthenticity.toLowerCase().includes('outdated') ||
+                                aiAnalysis.slipAnalysis.documentAuthenticity.toLowerCase().includes('stale') ||
+                                aiAnalysis.slipAnalysis.documentAuthenticity.toLowerCase().includes('2024') ||
+                                aiAnalysis.slipAnalysis.documentAuthenticity.toLowerCase().includes('2023') ||
+                                aiAnalysis.slipAnalysis.documentAuthenticity.toLowerCase().includes('2025')
+                                  ? 'text-rose-600 font-black'
+                                  : 'text-emerald-700 font-bold'
+                              }`}
+                            >
+                              {aiAnalysis.slipAnalysis.documentAuthenticity}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
