@@ -451,21 +451,74 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="relative flex items-center justify-center my-auto">
-                  <svg className="w-44 h-44 -rotate-90 transform" viewBox="0 0 36 36">
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#f1f5f9"
-                      strokeWidth="4"
-                    />
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#2563eb"
-                      strokeWidth="4.5"
-                      strokeDasharray={`${calcPct(activeDisbursed)}, 100`}
-                    />
-                  </svg>
+                  {(() => {
+                    const pctActive = totalLoans > 0 ? (activeDisbursed / totalLoans) * 100 : 0;
+                    const pctClosed = totalLoans > 0 ? (closedLoans / totalLoans) * 100 : 0;
+                    const pctApplied = totalLoans > 0 ? (appliedLoans / totalLoans) * 100 : 0;
+                    const pctRejected = totalLoans > 0 ? (rejectedLoans / totalLoans) * 100 : 0;
+
+                    const offsetActive = 0;
+                    const offsetClosed = -pctActive;
+                    const offsetApplied = -(pctActive + pctClosed);
+                    const offsetRejected = -(pctActive + pctClosed + pctApplied);
+
+                    const circleD = "M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831";
+
+                    return (
+                      <svg className="w-44 h-44 -rotate-90 transform" viewBox="0 0 36 36">
+                        {/* Background track */}
+                        <path d={circleD} fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                        
+                        {/* 1. Active Disbursed (Blue) */}
+                        {pctActive > 0 && (
+                          <path
+                            d={circleD}
+                            fill="none"
+                            stroke="#2563eb"
+                            strokeWidth="4.5"
+                            strokeDasharray={`${pctActive}, 100`}
+                            strokeDashoffset={offsetActive}
+                          />
+                        )}
+
+                        {/* 2. Closed / Repaid (Green) */}
+                        {pctClosed > 0 && (
+                          <path
+                            d={circleD}
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth="4.5"
+                            strokeDasharray={`${pctClosed}, 100`}
+                            strokeDashoffset={offsetClosed}
+                          />
+                        )}
+
+                        {/* 3. Applied / Lead (Red) */}
+                        {pctApplied > 0 && (
+                          <path
+                            d={circleD}
+                            fill="none"
+                            stroke="#f43f5e"
+                            strokeWidth="4.5"
+                            strokeDasharray={`${pctApplied}, 100`}
+                            strokeDashoffset={offsetApplied}
+                          />
+                        )}
+
+                        {/* 4. Rejected (Purple) */}
+                        {pctRejected > 0 && (
+                          <path
+                            d={circleD}
+                            fill="none"
+                            stroke="#a855f7"
+                            strokeWidth="4.5"
+                            strokeDasharray={`${pctRejected}, 100`}
+                            strokeDashoffset={offsetRejected}
+                          />
+                        )}
+                      </svg>
+                    );
+                  })()}
 
                   <div className="absolute flex flex-col items-center justify-center text-center">
                     <span className="text-3xl font-black text-slate-900">{totalLoans}</span>
