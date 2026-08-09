@@ -1,5 +1,5 @@
 import React, { useState, useEffect, PropsWithChildren } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, Sparkles, Loader2, FileText, ExternalLink, User, ShieldCheck, Check, Info } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, Sparkles, Loader2, FileText, ExternalLink, User, ShieldCheck, Check } from 'lucide-react';
 import { api } from '../../services/api';
 
 interface DecisionModalProps {
